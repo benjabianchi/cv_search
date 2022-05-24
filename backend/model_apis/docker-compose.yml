@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  search_api:
+    build: ./search_cv
+    ports:
+      - "8000:4000"
+    volumes:
+      - "./train_cv/model:/app/model"
+      - "./search_cv:/app"
+      - "./search_cv/cvs_ejemplo:/app/cvs"
+    networks:
+      - cv_searching
+
+  train_api:
+    build: ./train_cv
+    ports:
+      - "7000:4000"
+    volumes:
+      - "./train_cv/model:/app/model"
+      - "./train_cv:/app"
+      - "./train_cv/cvs_ejemplo:/app/cvs"
+    networks:
+      - cv_searching
+networks:
+  cv_searching:
+    name: cv_searching
+    driver: bridge

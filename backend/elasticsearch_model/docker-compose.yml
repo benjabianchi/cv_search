@@ -1,0 +1,64 @@
+version: "3.0"
+services:
+  csv_api_1:
+    build: ./app
+    ports:
+      - "7000:4000"
+    volumes:
+      - "./app:/app"
+      - "./app/app.py:/app/app.py"
+    networks:
+      - ek-net
+    depends_on:
+      - elasticsearch
+      - mqtt
+  elasticsearch:
+    container_name: elastic-container
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    networks:
+      - ek-net
+    ports:
+      - 9200:9200
+    volumes:
+      - /home/bebianchi/elastic_model/elastic_data:/usr/share/elasticsearch/data
+  kibana:
+    container_name: kibana-container
+    image: docker.elastic.co/kibana/kibana:7.13.4
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elastic-container:9200
+    networks:
+      - ek-net
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    profiles:
+      - donotstart
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto
+    restart: always
+    ports:
+        - "1883:1883"
+        - "9001:9001"
+    networks:
+        - ek-net
+  broker1:
+    build: ./broker
+    volumes:
+      - "./broker/example_susc.py:/app/example_susc.py"
+      - "./broker/externalFuncs.py:/app/externalFuncs.py"
+      - "./broker/cvs_ejemplo:/app/cvs_ejemplo"
+      - "./broker/csv:/app/csv"
+    depends_on:
+      - elasticsearch
+      - mqtt
+    networks:
+      - ek-net
+
+networks:
+  ek-net:
+    driver: bridge
